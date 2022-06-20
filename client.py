@@ -390,6 +390,7 @@ class FtxClient:
                 except Exception as e:
                     return (f'failure: {e}')
             else: 
+                print('failure: condition unmet')
                 time.sleep(wait)
                 continue
 
@@ -412,6 +413,7 @@ class FtxClient:
                 except Exception as e:
                     return (f'failure: {e}')
             else:
+                print('failure: condition unmet')
                 time.sleep(wait)
                 continue
 
