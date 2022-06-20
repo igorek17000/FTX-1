@@ -4,6 +4,7 @@
 
 在python console裡，跑
 1. "import client"
+# 離開console "quit()"
 
 基本指令：
 
