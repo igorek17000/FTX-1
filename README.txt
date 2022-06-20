@@ -8,10 +8,12 @@
 
 基本指令：
 
-- 用一個/換帳號 (default 是我AI01)
-    Client = client.FtxClient([api_key], [api_secret],[Optional: subaccount_name])
+- 加可用帳號 (default 是我AI01)
+    [取名] = client.FtxClient([api_key], [api_secret],[Optional: subaccount_name])
     例如：
-    Client = client.FtxClient('1lzuMlvkbTyhgf0qzqc7c_wGrrJQrPB0TZDt018f','XAGNmVjiM6Zrdcv2FBhZzyUr5JS4HtJBTjw9LVKr', 'AI01')
+    cliff = client.FtxClient('1lzuMlvkbTyhgf0qzqc7c_wGrrJQrPB0TZDt018f','XAGNmVjiM6Zrdcv2FBhZzyUr5JS4HtJBTjw9LVKr', 'cliff')
+    # 換之後把 "cliff" 代替任何 "client.Client"
+        # 例如 "cliff.run_positive("BTC", -0.1, 5, 1)"
 
 - 開倉/正向
     client.Client.run_positive([幣種], [價差容許值], [跑次數], [跑間隔])
@@ -33,10 +35,15 @@
     例如：
     client.Client.negative_future_dif("BTC-PERP","BTC/USD")
 
-- 利率圖
-    client.Client.graph_funding_rates([合約幣種],[天]) #1-20天
+- 20天利率圖
+    client.Client.graph_funding_rates([幣種]) 
     例如：
-    client.Client.graph_funding_rates("BTC-PERP", 20)
+    client.Client.graph_funding_rates("BTC")
+
+- 20天利潤圖
+    client.Client.graph_payments(["幣種"])
+    例如：
+    client.Client.graph_payments("BTC")
 
 - 平均年利率
     client.Client.fund_overtime([幣種],[天]) #1-20天

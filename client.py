@@ -7,6 +7,10 @@ from requests import Request, Session, Response
 import hmac
 from ciso8601 import parse_datetime
 import matplotlib.pyplot as plt
+from dateutil import parser
+import datetime
+from matplotlib import font_manager
+
 
 
 
@@ -312,10 +316,11 @@ class FtxClient:
     def get_all_funding_rates(self) -> List[dict]:
         return self._get('funding_rates')
 
-    def get_funding_payments(self, start_time: float = None, end_time: float = None) -> List[dict]:
+    def get_funding_payments(self, start_time: float = None, end_time: float = None, future: str = None) -> List[dict]:
         return self._get('funding_payments', {
             'start_time': start_time,
-            'end_time': end_time
+            'end_time': end_time,
+            'future':future
         })
 
     def create_subaccount(self, nickname: str) -> dict:
@@ -399,8 +404,8 @@ class FtxClient:
         for _ in range(attempt):
             future = f'{coin}-PERP'
             market = f'{coin}/USD'
-            future_ask = float(self.get_future(future['ask']))
-            market_bid = float(self.get_single_market(market['bid']))
+            future_ask = float(self.get_future(future)['ask'])
+            market_bid = float(self.get_single_market(market)['bid'])
             #buy future
             #sell market
             if self.negative_future_dif(future, market) < tolerance:
@@ -417,15 +422,18 @@ class FtxClient:
                 time.sleep(wait)
                 continue
 
-    def graph_funding_rates(self, future: str="BTC-PERP", days: int=7):
+    def graph_funding_rates(self, future: str="BTC"):
+        fontP = font_manager.FontProperties()
+        fontP.set_family('SimHei')
+        fontP.set_size(14)
         xvalues = []
         yvalues = []
         colors =[]
         tn = int(time.time())
-        funding_rates = self.get_funding_rates(future, tn-(days*86400), tn)
+        funding_rates = self.get_funding_rates(f'{future}-PERP', tn-1728000, tn)
         
         for i in funding_rates[::-1]:
-            xvalues.append(i["time"])
+            xvalues.append(parser.parse(i["time"]))
             yvalues.append(round(float(i['rate'])*636000,2))
         
         for i in yvalues:
@@ -435,9 +443,10 @@ class FtxClient:
                 colors.append('grey')
             else:
                 colors.append('red')
-
+        plt.figure(figsize=(15,5))
         plt.scatter(xvalues, yvalues, c=colors)
         plt.grid(axis="y")
+        plt.title(f"{future}-PERP Funding Rates (20 Days)",fontproperties=fontP)
         plt.show()
 
     def fund_overtime(self, coin: str="BTC", days: int=7):
@@ -455,7 +464,38 @@ class FtxClient:
     def coin_min(self, market):
         return (self.get_market(market)['minProvideSize'])
 
+    def graph_payments(self, future):
+        
+        test_date = datetime.datetime(2020, 5, 17)
+        tn = int(time.time())
+        xvalues = []
+        yvalues = []
+        data = self.get_funding_payments(tn-(1728000),tn, f'{future}-PERP')[::-1]
+        for j in data:
+            j['time'] = parser.parse(j['time'])
+            date = j['time']
+            if test_date.date() != date.date():
+                xvalues.append(date.date())
+                test_date = date
+        
+        for i in xvalues:
+            payment = 0
+            for j in data:
+                if j['time'].date() == i:
+                    payment-=j['payment']
+            yvalues.append(payment)
+
+        plt.figure(figsize=(15,5))
+        plt.grid()
+        plt.title(f"{future}-PERP Funding Payments (20 Days)")
+        plt.bar(xvalues,yvalues)
+        plt.show()
+
+
+
+
 Client = FtxClient('1lzuMlvkbTyhgf0qzqc7c_wGrrJQrPB0TZDt018f','XAGNmVjiM6Zrdcv2FBhZzyUr5JS4HtJBTjw9LVKr', 'AI01')
+
 # print(Client.get_balances())
 
 # while True:
@@ -467,8 +507,8 @@ Client = FtxClient('1lzuMlvkbTyhgf0qzqc7c_wGrrJQrPB0TZDt018f','XAGNmVjiM6Zrdcv2F
 #     print(Client.run_positive("BTC", 0.001))
 
 
-# Client.run_positive('GRT')
-
+# Client.graph_payments('LEO')
+# Client.graph_funding_rates('LEO')
 
 
 
